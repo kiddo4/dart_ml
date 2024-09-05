@@ -77,6 +77,91 @@ class Tensor {
     return Tensor(shape, newData);
   }
 
+  // New element-wise operations
+ Tensor elementwiseOperation(double Function(double) operation) {
+    final newData = Float32List(data.length);
+    for (var i = 0; i < data.length; i++) {
+      newData[i] = operation(data[i]);
+    }
+    return Tensor(shape, newData);
+  }
+
+  Tensor exp() => elementwiseOperation(math.exp);
+  Tensor log() => elementwiseOperation(math.log);
+  Tensor abs() => elementwiseOperation((x) => x.abs());  // Corrected this line
+  Tensor sqrt() => elementwiseOperation(math.sqrt);
+
+  // Activation functions
+  Tensor relu() => elementwiseOperation((x) => math.max(0, x));
+  Tensor sigmoid() => elementwiseOperation((x) => 1 / (1 + math.exp(-x)));
+   Tensor tanh() => elementwiseOperation((x) => math.sin(x) / math.cos(x));
+
+  // Loss functions
+  double mse(Tensor other) {
+    if (!_shapeMatch(other)) {
+      throw ArgumentError('Tensor shapes do not match for MSE calculation');
+    }
+    double sum = 0;
+    for (var i = 0; i < data.length; i++) {
+      final diff = data[i] - other.data[i];
+      sum += diff * diff;
+    }
+    return sum / data.length;
+  }
+
+  double crossEntropy(Tensor other) {
+    if (!_shapeMatch(other)) {
+      throw ArgumentError('Tensor shapes do not match for cross-entropy calculation');
+    }
+    double sum = 0;
+    for (var i = 0; i < data.length; i++) {
+      sum += other.data[i] * math.log(data[i]);
+    }
+    return -sum;
+  }
+
+  // Utility methods
+  Tensor sum({int? axis}) {
+    if (axis == null) {
+      final sum = data.reduce((a, b) => a + b);
+      return Tensor([1], Float32List.fromList([sum]));
+    } else {
+      // Implement sum along a specific axis
+      // This is a simplified version for 2D tensors
+      if (shape.length != 2) {
+        throw UnimplementedError('Sum along axis is only implemented for 2D tensors');
+      }
+      final newShape = List<int>.from(shape);
+      newShape[axis] = 1;
+      final newData = Float32List(newShape.reduce((a, b) => a * b));
+      if (axis == 0) {
+        for (var i = 0; i < shape[1]; i++) {
+          double sum = 0;
+          for (var j = 0; j < shape[0]; j++) {
+            sum += data[j * shape[1] + i];
+          }
+          newData[i] = sum;
+        }
+      } else {
+        for (var i = 0; i < shape[0]; i++) {
+          double sum = 0;
+          for (var j = 0; j < shape[1]; j++) {
+            sum += data[i * shape[1] + j];
+          }
+          newData[i] = sum;
+        }
+      }
+      return Tensor(newShape, newData);
+    }
+  }
+
+  Tensor mean({int? axis}) {
+    final sum = this.sum(axis: axis);
+    final divisor = axis == null ? data.length : shape[axis];
+    return sum.elementwiseOperation((x) => x / divisor);
+  }
+
+
   Tensor matmul(Tensor other) {
     if (shape.length != 2 || other.shape.length != 2 || shape[1] != other.shape[0]) {
       throw ArgumentError('Invalid shapes for matrix multiplication');
