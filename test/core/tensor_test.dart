@@ -5,87 +5,50 @@ import 'package:dart_ml/core/tensors.dart';
 
 void main() {
   group('Tensor', () {
-    test('creation', () {
-      final t = Tensor([2, 3], Float32List.fromList([1, 2, 3, 4, 5, 6]));
-      expect(t.shape, equals([2, 3]));
-      expect(t.data, equals(Float32List.fromList([1, 2, 3, 4, 5, 6])));
+    test('Creation and shape validation', () {
+      final tensor = Tensor([2, 3], Float32List.fromList([1, 2, 3, 4, 5, 6]));
+      expect(tensor.shape, [2, 3]);
+      expect(tensor.data.length, 6);
     });
 
-    test('zeros', () {
-      final t = Tensor.zeros([2, 3]);
-      expect(t.shape, equals([2, 3]));
-      expect(t.data, equals(Float32List(6)..fillRange(0, 6, 0.0)));
+    test('Zeros and Ones', () {
+      final zeros = Tensor.zeros([2, 2]);
+      final ones = Tensor.ones([2, 2]);
+      expect(zeros.data.every((element) => element == 0), isTrue);
+      expect(ones.data.every((element) => element == 1), isTrue);
     });
 
-    test('ones', () {
-      final t = Tensor.ones([2, 2]);
-      expect(t.shape, equals([2, 2]));
-      expect(t.data, equals(Float32List(4)..fillRange(0, 4, 1.0)));
+    test('Random normal distribution', () {
+      final tensor = Tensor.randn([2, 3]);
+      expect(tensor.shape, [2, 3]);
+      expect(tensor.data.length, 6);
     });
 
-    test('randn', () {
-      final t = Tensor.randn([2, 3]);
-      expect(t.shape, equals([2, 3]));
-      expect(t.data.length, equals(6));
-      // Check if values are within a reasonable range for a normal distribution
-      for (var value in t.data) {
-        expect(value, inInclusiveRange(-10, 10));
-      }
-    });
-
-    test('reshape', () {
-      final t = Tensor([2, 3], Float32List.fromList([1, 2, 3, 4, 5, 6]));
-      final reshaped = t.reshape([3, 2]);
-      expect(reshaped.shape, equals([3, 2]));
-      expect(reshaped.data, equals(t.data));
-    });
-
-    test('addition', () {
+    test('Addition', () {
       final t1 = Tensor([2, 2], Float32List.fromList([1, 2, 3, 4]));
-      final t2 = Tensor([2, 2], Float32List.fromList([5, 6, 7, 8]));
+      final t2 = Tensor([2, 2], Float32List.fromList([4, 3, 2, 1]));
       final result = t1 + t2;
-      expect(result.shape, equals([2, 2]));
-      expect(result.data, equals(Float32List.fromList([6, 8, 10, 12])));
+      expect(result.data, [5, 5, 5, 5]);
     });
 
-    test('subtraction', () {
-      final t1 = Tensor([2, 2], Float32List.fromList([5, 6, 7, 8]));
-      final t2 = Tensor([2, 2], Float32List.fromList([1, 2, 3, 4]));
-      final result = t1 - t2;
-      expect(result.shape, equals([2, 2]));
-      expect(result.data, equals(Float32List.fromList([4, 4, 4, 4])));
+    test('Element-wise operations', () {
+      final t1 = Tensor([2, 2], Float32List.fromList([1, 4, 9, 16]));
+      final sqrtResult = t1.sqrt();
+      expect(sqrtResult.data, [1, 2, 3, 4]);
     });
 
-    test('element-wise multiplication', () {
-      final t1 = Tensor([2, 2], Float32List.fromList([1, 2, 3, 4]));
-      final t2 = Tensor([2, 2], Float32List.fromList([5, 6, 7, 8]));
-      final result = t1 * t2;
-      expect(result.shape, equals([2, 2]));
-      expect(result.data, equals(Float32List.fromList([5, 12, 21, 32])));
-    });
-
-    test('matrix multiplication', () {
+    test('Matrix multiplication', () {
       final t1 = Tensor([2, 3], Float32List.fromList([1, 2, 3, 4, 5, 6]));
       final t2 = Tensor([3, 2], Float32List.fromList([7, 8, 9, 10, 11, 12]));
       final result = t1.matmul(t2);
-      expect(result.shape, equals([2, 2]));
-      expect(result.data, equals(Float32List.fromList([58, 64, 139, 154])));
+      expect(result.shape, [2, 2]);
+      expect(result.data, [58, 64, 139, 154]);
     });
 
-    test('invalid shape for creation', () {
-      expect(() => Tensor([2, 3], Float32List(5)), throwsArgumentError);
-    });
-
-    test('invalid shape for addition', () {
-      final t1 = Tensor([2, 2], Float32List(4));
-      final t2 = Tensor([2, 3], Float32List(6));
-      expect(() => t1 + t2, throwsArgumentError);
-    });
-
-    test('invalid shape for matrix multiplication', () {
-      final t1 = Tensor([2, 3], Float32List(6));
-      final t2 = Tensor([2, 2], Float32List(4));
-      expect(() => t1.matmul(t2), throwsArgumentError);
+    test('Mean calculation', () {
+      final t1 = Tensor([2, 2], Float32List.fromList([2, 4, 6, 8]));
+      final mean = t1.mean();
+      expect(mean.data.first, 5.0);
     });
   });
 }

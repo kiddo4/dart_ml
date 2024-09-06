@@ -44,41 +44,23 @@ class Tensor {
     return Tensor(newShape, data);
   }
 
-  Tensor operator +(Tensor other) {
+  Tensor operator +(Tensor other) => _elementwiseBinaryOp(other, (a, b) => a + b);
+  Tensor operator -(Tensor other) => _elementwiseBinaryOp(other, (a, b) => a - b);
+  Tensor operator *(Tensor other) => _elementwiseBinaryOp(other, (a, b) => a * b);
+  Tensor operator /(Tensor other) => _elementwiseBinaryOp(other, (a, b) => a / b);
+
+  Tensor _elementwiseBinaryOp(Tensor other, double Function(double, double) operation) {
     if (!_shapeMatch(other)) {
-      throw ArgumentError('Tensor shapes do not match for addition');
+      throw ArgumentError('Tensor shapes do not match for element-wise operation');
     }
     final newData = Float32List(data.length);
     for (var i = 0; i < data.length; i++) {
-      newData[i] = data[i] + other.data[i];
+      newData[i] = operation(data[i], other.data[i]);
     }
     return Tensor(shape, newData);
   }
 
-  Tensor operator -(Tensor other) {
-    if (!_shapeMatch(other)) {
-      throw ArgumentError('Tensor shapes do not match for subtraction');
-    }
-    final newData = Float32List(data.length);
-    for (var i = 0; i < data.length; i++) {
-      newData[i] = data[i] - other.data[i];
-    }
-    return Tensor(shape, newData);
-  }
-
-  Tensor operator *(Tensor other) {
-    if (!_shapeMatch(other)) {
-      throw ArgumentError('Tensor shapes do not match for element-wise multiplication');
-    }
-    final newData = Float32List(data.length);
-    for (var i = 0; i < data.length; i++) {
-      newData[i] = data[i] * other.data[i];
-    }
-    return Tensor(shape, newData);
-  }
-
-  // New element-wise operations
- Tensor elementwiseOperation(double Function(double) operation) {
+  Tensor elementwiseOperation(double Function(double) operation) {
     final newData = Float32List(data.length);
     for (var i = 0; i < data.length; i++) {
       newData[i] = operation(data[i]);
@@ -88,15 +70,13 @@ class Tensor {
 
   Tensor exp() => elementwiseOperation(math.exp);
   Tensor log() => elementwiseOperation(math.log);
-  Tensor abs() => elementwiseOperation((x) => x.abs());  // Corrected this line
+  Tensor abs() => elementwiseOperation((x) => x.abs());
   Tensor sqrt() => elementwiseOperation(math.sqrt);
 
-  // Activation functions
   Tensor relu() => elementwiseOperation((x) => math.max(0, x));
   Tensor sigmoid() => elementwiseOperation((x) => 1 / (1 + math.exp(-x)));
-   Tensor tanh() => elementwiseOperation((x) => math.sin(x) / math.cos(x));
+  Tensor tanh() => elementwiseOperation((x) => math.sin(x) / math.cos(x));
 
-  // Loss functions
   double mse(Tensor other) {
     if (!_shapeMatch(other)) {
       throw ArgumentError('Tensor shapes do not match for MSE calculation');
@@ -120,14 +100,11 @@ class Tensor {
     return -sum;
   }
 
-  // Utility methods
   Tensor sum({int? axis}) {
     if (axis == null) {
       final sum = data.reduce((a, b) => a + b);
       return Tensor([1], Float32List.fromList([sum]));
     } else {
-      // Implement sum along a specific axis
-      // This is a simplified version for 2D tensors
       if (shape.length != 2) {
         throw UnimplementedError('Sum along axis is only implemented for 2D tensors');
       }
@@ -161,7 +138,6 @@ class Tensor {
     return sum.elementwiseOperation((x) => x / divisor);
   }
 
-
   Tensor matmul(Tensor other) {
     if (shape.length != 2 || other.shape.length != 2 || shape[1] != other.shape[0]) {
       throw ArgumentError('Invalid shapes for matrix multiplication');
@@ -180,6 +156,20 @@ class Tensor {
       }
     }
     return Tensor([m, n], newData);
+  }
+
+  Tensor transpose() {
+    if (shape.length != 2) {
+      throw UnimplementedError('Transpose is only implemented for 2D tensors');
+    }
+    final newShape = [shape[1], shape[0]];
+    final newData = Float32List(newShape.reduce((a, b) => a * b));
+    for (var i = 0; i < shape[0]; i++) {
+      for (var j = 0; j < shape[1]; j++) {
+        newData[j * shape[0] + i] = data[i * shape[1] + j];
+      }
+    }
+    return Tensor(newShape, newData);
   }
 
   bool _shapeMatch(Tensor other) {
