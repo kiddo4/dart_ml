@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 
 import 'tensors.dart';
 
@@ -11,9 +10,7 @@ class Variable {
   Variable(this.data);
 
   void backward() {
-    if (grad == null) {
-      grad = Tensor.ones(data.shape);
-    }
+    grad ??= Tensor.ones(data.shape);
 
     List<Variable> topoOrder = [];
     Set<Variable> visited = {};
@@ -44,8 +41,8 @@ Variable add(Variable a, Variable b) {
 
   out._backward = () {
     if (out.grad != null) {
-      if (a.grad == null) a.grad = Tensor.zeros(a.data.shape);
-      if (b.grad == null) b.grad = Tensor.zeros(b.data.shape);
+      a.grad ??= Tensor.zeros(a.data.shape);
+      b.grad ??= Tensor.zeros(b.data.shape);
       a.grad = a.grad! + out.grad!;
       b.grad = b.grad! + out.grad!;
     }
@@ -60,8 +57,8 @@ Variable multiply(Variable a, Variable b) {
 
   out._backward = () {
     if (out.grad != null) {
-      if (a.grad == null) a.grad = Tensor.zeros(a.data.shape);
-      if (b.grad == null) b.grad = Tensor.zeros(b.data.shape);
+      a.grad ??= Tensor.zeros(a.data.shape);
+      b.grad ??= Tensor.zeros(b.data.shape);
       a.grad = a.grad! + (out.grad! * b.data);
       b.grad = b.grad! + (out.grad! * a.data);
     }
