@@ -16,10 +16,10 @@ void main() {
       final dataCleaner = DataCleaner();
       final data = [
         {'Age': 25.0},
-        {'Age': null},
+        {'Age': null}, // Test with a null value
       ];
       final cleanedData = dataCleaner.fillMissingValues(data, 'Age', 30.0);
-      expect(cleanedData[1]['Age'], 30.0);
+      expect(cleanedData[1]['Age'], 30.0); // Expect the missing value to be filled with 30.0
     });
 
     test('Data cleaning - encoding categorical', () {
@@ -29,8 +29,8 @@ void main() {
         {'Sex': 'female'},
       ];
       final encodedData = dataCleaner.encodeCategorical(data, 'Sex', {'male': 0, 'female': 1});
-      expect(encodedData[0]['Sex'], 0);
-      expect(encodedData[1]['Sex'], 1);
+      expect(encodedData[0]['Sex'], 0); // Expect integer 0
+      expect(encodedData[1]['Sex'], 1); // Expect integer 1
     });
 
     test('Feature engineering - normalization', () {
@@ -60,8 +60,9 @@ void main() {
       final dataSplitter = DataSplitter();
       final data = List.generate(100, (index) => {'feature': index});
       final splitData = dataSplitter.trainTestSplit(data, 0.2);
-      expect(splitData['train']!.length, 80);
-      expect(splitData['test']!.length, 20);
+      expect(splitData['train']!.length, 80); // Test for 80% train data
+      expect(splitData['test']!.length, 20);  // Test for 20% test data
     });
   });
 }
+
