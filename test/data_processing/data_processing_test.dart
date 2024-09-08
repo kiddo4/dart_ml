@@ -8,7 +8,7 @@ void main() {
   group('Data Processing Tests', () {
     test('CSV loading', () async {
       final dataLoader = DataLoader();
-      final data = await dataLoader.loadCSV('/Users/kiddo/Desktop/dart_ml/lib/data_processing/example/titanic.csv');
+      final data = await dataLoader.loadCSV('lib/data_processing/example/titanic.csv');
       expect(data.isNotEmpty, true);
     });
 

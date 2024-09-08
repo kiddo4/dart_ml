@@ -10,7 +10,7 @@ void main() async {
   final dataSplitter = DataSplitter();
 
   // Step 1: Load the Titanic dataset
-  final titanicData = await dataLoader.loadCSV('/Users/kiddo/Desktop/dart_ml/lib/data_processing/example/titanic.csv');
+  final titanicData = await dataLoader.loadCSV('lib/data_processing/example/titanic.csv');
 
   // Step 2: Clean the data
   final cleanedData = dataCleaner.fillMissingValues(titanicData, 'Age', 30.0);
