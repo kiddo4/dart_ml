@@ -8,6 +8,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  image: ^4.0.15
   csv: ^6.0.0
   # path: ^1.8.0
 
