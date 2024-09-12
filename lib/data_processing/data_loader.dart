@@ -6,6 +6,7 @@ import 'package:csv/csv.dart';
 class DataLoader {
 
   Future<List<Map<String, String>>> loadCSV(String filePath) async {
+  try {
     final file = File(filePath);
     final content = await file.readAsString();
 
@@ -29,12 +30,28 @@ class DataLoader {
     }).map((row) {
       return Map<String, String>.fromIterables(headers, row.map((e) => e.toString()));
     }).toList();
+  } catch (e) {
+    print('Error loading CSV file: $e');
+    rethrow;
   }
+}
 
 
   Future<List<Map<String, dynamic>>> loadJson(String filePath) async {
+  try {
     final file = File(filePath);
     final content = await file.readAsString();
-    return List<Map<String, dynamic>>.from(json.decode(content));
+    final decoded = json.decode(content);
+
+    if (decoded is List) {
+      return List<Map<String, dynamic>>.from(decoded);
+    } else {
+      throw FormatException('JSON data is not a list.');
+    }
+  } catch (e) {
+    print('Error loading JSON file: $e');
+    rethrow;
   }
+}
+
 }

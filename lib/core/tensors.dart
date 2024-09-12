@@ -276,4 +276,31 @@ extension BroadcastTensor on Tensor {
     }
     return index;
   }
+
+  int get length => data.length;
+
+  // Access element using [] operator
+  double operator [](List<int> indices) {
+    int index = _flattenIndices(indices);
+    return data[index];
+  }
+
+  // Assign value using []= operator
+  void operator []=(List<int> indices, double value) {
+    int index = _flattenIndices(indices);
+    data[index] = value;
+  }
+
+  int _flattenIndices(List<int> indices) {
+    if (indices.length != shape.length) {
+      throw ArgumentError('Number of indices must match tensor dimensions');
+    }
+    int index = 0;
+    int stride = 1;
+    for (int i = shape.length - 1; i >= 0; i--) {
+      index += indices[i] * stride;
+      stride *= shape[i];
+    }
+    return index;
+  }
 }

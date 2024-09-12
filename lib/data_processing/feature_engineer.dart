@@ -1,7 +1,10 @@
 import 'dart:math';
 
 class FeatureEngineer {
-  // Normalize a feature (Min-Max Scaling)
+  /// Normalizes a feature using Min-Max Scaling.
+  ///
+  /// Returns a list of maps with the specified column normalized to the range [0, 1].
+  /// If the column has no valid numerical values, a warning is printed, and the original data is returned.
   List<Map<String, dynamic>> normalize(
     List<Map<String, dynamic>> data,
     String column,
@@ -23,14 +26,17 @@ class FeatureEngineer {
 
     return data.map((row) {
       final value = _parseDouble(row[column]);
-      if (value != null && row[column] is! String) {  // Ensure correct type handling
+      if (value != null && row[column] is! String) {
         row[column] = range != 0 ? (value - minValue) / range : 0.0;
       }
       return row;
     }).toList();
   }
 
-  // Standardize a feature (Z-Score Scaling)
+  /// Standardizes a feature using Z-Score Scaling.
+  ///
+  /// Returns a list of maps with the specified column standardized to have a mean of 0 and a standard deviation of 1.
+  /// If the column has no valid numerical values, a warning is printed, and the original data is returned.
   List<Map<String, dynamic>> standardize(
     List<Map<String, dynamic>> data,
     String column,
@@ -52,14 +58,14 @@ class FeatureEngineer {
 
     return data.map((row) {
       final value = _parseDouble(row[column]);
-      if (value != null && row[column] is! String) {  // Ensure correct type handling
+      if (value != null && row[column] is! String) {
         row[column] = stdDev != 0 ? (value - meanValue) / stdDev : 0.0;
       }
       return row;
     }).toList();
   }
 
-  // Helper method to safely parse double values
+  /// Parses a value to a double, handling various types.
   double? _parseDouble(dynamic value) {
     if (value == null) return null;
     if (value is num) return value.toDouble();

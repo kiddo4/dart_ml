@@ -1,42 +1,50 @@
-import 'dart:io';
 import 'package:dart_ml/visualization/visualizations.dart';
 import 'package:image/image.dart' as img;
-
+import 'dart:io';
 
 void main() {
-  // Load the font from a zip file
-  final fontZipPath = 'fonts/arial.ttf.zip';  // Replace with the actual path
-  final fontBytes = File(fontZipPath).readAsBytesSync();
-  final font = img.BitmapFont.fromZip(fontBytes);
+  final fontBytes = File('fonts/arial.ttf.zip').readAsBytesSync();
+  final font = img.BitmapFont.fromZip(fontBytes); // Make sure to load an actual BitmapFont
 
-  // Create a Visualization instance
-  final visualization = Visualization(font: font);
+  final visualization = Visualization(
+    width: 800,
+    height: 600,
+    padding: 40,
+    font: font,
+  );
 
-  // Line Plot Example
-  final linePlotXValues = [0.0, 1.0, 2.0, 3.0, 4.0];
-  final linePlotYValues = [0.0, 1.0, 4.0, 9.0, 16.0];
-  final linePlotFilePath = 'output_line_plot.jpg';
+  // Example data
+  final xValues = [1.0, 2.0, 3.0, 4.0, 5.0];
+  final yValues = [2.0, 3.5, 1.5, 4.5, 3.0];
+  final categories = ['A', 'B', 'C', 'D', 'E'];
+  final barValues = [10.0, 20.0, 30.0, 40.0, 50.0];
+  final heatmapData = List.generate(
+    10,
+    (y) => List.generate(10, (x) => (x + y) / 20),
+  );
 
+  // Generate line plot
   visualization.drawLinePlot(
-    linePlotXValues,
-    linePlotYValues,
-    linePlotFilePath,
-    title: 'Quadratic Function'
+    xValues,
+    yValues,
+    'line_plot.jpg',
+    title: 'Line Plot Example',
   );
 
-  print('Line plot saved to $linePlotFilePath');
-
-  // Scatter Plot Example
-  final scatterPlotXValues = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
-  final scatterPlotYValues = [0.0, 1.5, 3.5, 7.0, 8.5, 15.0];
-  final scatterPlotFilePath = 'output_scatter_plot.jpg';
-
+  // Generate scatter plot
   visualization.drawScatterPlot(
-    scatterPlotXValues,
-    scatterPlotYValues,
-    scatterPlotFilePath,
-    title: 'Scatter Plot Example'
+    xValues,
+    yValues,
+    'scatter_plot.jpg',
+    title: 'Scatter Plot Example',
   );
 
-  print('Scatter plot saved to $scatterPlotFilePath');
+ 
+  // Generate heatmap
+  visualization.drawHeatmap(
+    heatmapData,
+    'heatmap.jpg',
+  );
+
+  print('Visualizations generated successfully!');
 }

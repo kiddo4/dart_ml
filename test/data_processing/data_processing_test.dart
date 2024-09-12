@@ -5,6 +5,13 @@ import 'package:dart_ml/data_processing/feature_engineer.dart';
 import 'package:dart_ml/data_processing/data_splitter.dart';
 
 void main() {
+  final data = [
+    {'feature1': 1, 'feature2': 2},
+    {'feature1': 3, 'feature2': 4},
+    {'feature1': 5, 'feature2': 6},
+    {'feature1': 7, 'feature2': 8},
+    {'feature1': 9, 'feature2': 10},
+  ];
   group('Data Processing Tests', () {
     test('CSV loading', () async {
       final dataLoader = DataLoader();
@@ -56,13 +63,30 @@ void main() {
       expect(standardizedData[1]['Age'], closeTo(0.0, 0.1)); // mean should be around 0
     });
 
-    test('Data splitting', () {
-      final dataSplitter = DataSplitter();
-      final data = List.generate(100, (index) => {'feature': index});
-      final splitData = dataSplitter.trainTestSplit(data, 0.2);
-      expect(splitData['train']!.length, 80); // Test for 80% train data
-      expect(splitData['test']!.length, 20);  // Test for 20% test data
-    });
+    test('trainTestSplit with 0.4 testSize', () {
+    
+    final splitter = DataSplitter();
+    final result = splitter.trainTestSplit(data, testSize: 0.4, shuffle: false);
+
+    expect(result['train'], hasLength(3));
+    expect(result['test'], hasLength(2));
+  });
+
+  test('trainTestSplit with shuffling', () {
+    final splitter = DataSplitter();
+    final result = splitter.trainTestSplit(data, testSize: 0.4, shuffle: true);
+
+    expect(result['train'], isNot(equals(result['test'])));
+  });
+
+  test('trainTestSplit with invalid testSize', () {
+    final splitter = DataSplitter();
+
+    expect(
+      () => splitter.trainTestSplit(data, testSize: 1.2),
+      throwsA(isA<ArgumentError>()),
+    );
+  });
   });
 }
 
