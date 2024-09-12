@@ -14,6 +14,9 @@ class Visualization {
   final String xAxisLabel;
   final String yAxisLabel;
 
+
+  
+
   Visualization({
     this.width = 800,
     this.height = 600,

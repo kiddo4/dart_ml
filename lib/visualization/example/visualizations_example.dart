@@ -16,8 +16,7 @@ void main() {
   // Example data
   final xValues = [1.0, 2.0, 3.0, 4.0, 5.0];
   final yValues = [2.0, 3.5, 1.5, 4.5, 3.0];
-  final categories = ['A', 'B', 'C', 'D', 'E'];
-  final barValues = [10.0, 20.0, 30.0, 40.0, 50.0];
+  
   final heatmapData = List.generate(
     10,
     (y) => List.generate(10, (x) => (x + y) / 20),
