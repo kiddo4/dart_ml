@@ -14,13 +14,10 @@ class Visualization {
   final String xAxisLabel;
   final String yAxisLabel;
 
-
-  
-
   Visualization({
-    this.width = 800,
-    this.height = 600,
-    this.padding = 40,
+    this.width = 1000,
+    this.height = 700,
+    this.padding = 100,
     required this.font,
     this.zoomScale = 1.0,
     this.panX = 0.0,
@@ -30,13 +27,16 @@ class Visualization {
     this.yAxisLabel = 'Y-axis',
   });
 
-  void drawLinePlot(List<double> xValues, List<double> yValues, String filePath, {String? title}) {
+  void drawLinePlot(List<double> xValues, List<double> yValues, String filePath, {String? title, int downsampleRate = 1}) {
     _checkEqualLength(xValues, yValues);
 
     final image = img.Image(width: width, height: height);
     img.fill(image, color: img.ColorRgb8(255, 255, 255)); // White background
 
-    final minMax = _getMinMax(xValues, yValues);
+    final downsampledX = _downsample(xValues, downsampleRate);
+    final downsampledY = _downsample(yValues, downsampleRate);
+
+    final minMax = _getMinMax(downsampledX, downsampledY);
     final minX = minMax[0], maxX = minMax[1], minY = minMax[2], maxY = minMax[3];
 
     // Adjust coordinates based on zoom and pan
@@ -47,17 +47,17 @@ class Visualization {
     _drawAxes(image, minX, maxX, minY, maxY);
 
     // Draw data points and connect them with lines
-    for (int i = 0; i < xValues.length; i++) {
-      final x = (_normalize(xValues[i], minX, maxX, adjustedWidth) + padding + panX).toInt();
-      final y = (height - (_normalize(yValues[i], minY, maxY, adjustedHeight) + padding + panY)).toInt();
+    for (int i = 0; i < downsampledX.length; i++) {
+      final x = (_normalize(downsampledX[i], minX, maxX, adjustedWidth) + padding + panX).toInt();
+      final y = (height - (_normalize(downsampledY[i], minY, maxY, adjustedHeight) + padding + panY)).toInt();
 
       // Draw point
       _drawCircle(image, x, y, 3, img.ColorRgb8(0, 0, 255));
 
       // Connect points with lines
       if (i > 0) {
-        final prevX = (_normalize(xValues[i - 1], minX, maxX, adjustedWidth) + padding + panX).toInt();
-        final prevY = (height - (_normalize(yValues[i - 1], minY, maxY, adjustedHeight) + padding + panY)).toInt();
+        final prevX = (_normalize(downsampledX[i - 1], minX, maxX, adjustedWidth) + padding + panX).toInt();
+        final prevY = (height - (_normalize(downsampledY[i - 1], minY, maxY, adjustedHeight) + padding + panY)).toInt();
         _drawLine(image, prevX, prevY, x, y, img.ColorRgb8(0, 0, 255));
       }
     }
@@ -68,13 +68,16 @@ class Visualization {
     File(filePath).writeAsBytesSync(img.encodeJpg(image));
   }
 
-  void drawScatterPlot(List<double> xValues, List<double> yValues, String filePath, {String? title}) {
+  void drawScatterPlot(List<double> xValues, List<double> yValues, String filePath, {String? title, int downsampleRate = 1}) {
     _checkEqualLength(xValues, yValues);
 
     final image = img.Image(width: width, height: height);
     img.fill(image, color: img.ColorRgb8(255, 255, 255)); // White background
 
-    final minMax = _getMinMax(xValues, yValues);
+    final downsampledX = _downsample(xValues, downsampleRate);
+    final downsampledY = _downsample(yValues, downsampleRate);
+
+    final minMax = _getMinMax(downsampledX, downsampledY);
     final minX = minMax[0], maxX = minMax[1], minY = minMax[2], maxY = minMax[3];
 
     // Adjust coordinates based on zoom and pan
@@ -85,9 +88,9 @@ class Visualization {
     _drawAxes(image, minX, maxX, minY, maxY);
 
     // Draw scatter plot points
-    for (int i = 0; i < xValues.length; i++) {
-      final x = (_normalize(xValues[i], minX, maxX, adjustedWidth) + padding + panX).toInt();
-      final y = (height - (_normalize(yValues[i], minY, maxY, adjustedHeight) + padding + panY)).toInt();
+    for (int i = 0; i < downsampledX.length; i++) {
+      final x = (_normalize(downsampledX[i], minX, maxX, adjustedWidth) + padding + panX).toInt();
+      final y = (height - (_normalize(downsampledY[i], minY, maxY, adjustedHeight) + padding + panY)).toInt();
       _drawCircle(image, x, y, 4, img.ColorRgb8(255, 0, 0));
     }
 
@@ -126,6 +129,29 @@ class Visualization {
     File(filePath).writeAsBytesSync(img.encodeJpg(image));
   }
 
+  void drawLossCurve(List<double> losses, String filePath, {String? title}) {
+    final image = img.Image(width: width, height: height);
+    img.fill(image, color: img.ColorRgb8(255, 255, 255)); // White background
+
+    final maxLoss = losses.reduce(max);
+    final minLoss = losses.reduce(min);
+
+    _drawAxes(image, 0, losses.length.toDouble(), minLoss, maxLoss);
+
+    for (int i = 0; i < losses.length - 1; i++) {
+      final x1 = _normalize(i.toDouble(), 0, losses.length.toDouble(), width.toDouble()).toInt();
+      final y1 = height - _normalize(losses[i], minLoss, maxLoss, height.toDouble()).toInt();
+      final x2 = _normalize((i + 1).toDouble(), 0, losses.length.toDouble(), width.toDouble()).toInt();
+      final y2 = height - _normalize(losses[i + 1], minLoss, maxLoss, height.toDouble()).toInt();
+      _drawLine(image, x1, y1, x2, y2, img.ColorRgb8(0, 255, 0));
+    }
+
+    _addTitleAndLabels(image, 0, losses.length.toDouble(), minLoss, maxLoss, title: title);
+
+    // Save the image to a file
+    File(filePath).writeAsBytesSync(img.encodeJpg(image));
+  }
+
   void _checkEqualLength(List<double> xValues, List<double> yValues) {
     if (xValues.length != yValues.length) {
       throw ArgumentError('xValues and yValues must have the same length');
@@ -138,6 +164,11 @@ class Visualization {
     final minY = yValues.reduce(min);
     final maxY = yValues.reduce(max);
     return [minX, maxX, minY, maxY];
+  }
+
+  List<double> _downsample(List<double> data, int rate) {
+    if (rate <= 1) return data;
+    return [for (int i = 0; i < data.length; i += rate) data[i]];
   }
 
   void _drawAxes(img.Image image, double minX, double maxX, double minY, double maxY) {

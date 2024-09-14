@@ -118,7 +118,8 @@ class Conv2D implements Model {
   @override
   Tensor forward(Tensor input) {
     this.input = input;
-    // Implement convolution operation here (e.g., using im2col and matrix multiplication)
+    // Implement convolution operation here
+    // For simplicity, this will just return the input for now
     return input; // Placeholder
   }
 
@@ -137,6 +138,8 @@ class Conv2D implements Model {
     biases = biases - gradBiases!.elementwiseOperation((x) => x * learningRate);
   }
 }
+
+
 
 
 
