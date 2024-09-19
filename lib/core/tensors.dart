@@ -10,6 +10,9 @@ class Tensor {
       throw ArgumentError('Shape does not match data length');
     }
   }
+  factory Tensor.scalar(double value) {
+    return Tensor([1], Float32List.fromList([value]));
+  }
 
   factory Tensor.zeros(List<int> shape) {
     final size = shape.reduce((a, b) => a * b);
@@ -232,6 +235,27 @@ class Tensor {
   }
 }
 
+Tensor crossEntropyLoss(Tensor outputs, Tensor targets) {
+  // Ensure numerical stability by adding a small constant epsilon
+  final epsilon = 1e-12;
+
+  // Compute log of outputs, adding epsilon to avoid log(0)
+  final logOutputs = outputs.elementwiseOperation((x) => math.log(x + epsilon));
+
+  // Compute element-wise product of targets and logOutputs
+  final elementWiseProduct = targets * logOutputs;
+
+  // Compute the loss by summing over the classes (assuming axis=1) and taking the mean over the batch
+  final losses =
+      elementWiseProduct.sum(axis: 1).elementwiseOperation((x) => -x);
+
+  // Return the mean loss over the batch
+  final meanLoss = losses.mean();
+
+  // Return as a scalar tensor
+  return Tensor.scalar(meanLoss.data[0]);
+}
+
 extension BroadcastTensor on Tensor {
   Tensor broadcastTo(List<int> newShape) {
     if (shape.length > newShape.length) {
@@ -303,4 +327,42 @@ extension BroadcastTensor on Tensor {
     }
     return index;
   }
+
+  // Cross-entropy loss function
 }
+
+
+  // Helper function to convert List<Map<String, dynamic>> to List<Tensor>
+  List<Tensor> convertToTensorList(
+      List<Map<String, dynamic>> data, bool isFeature, int inputSize) {
+    return data.map((item) {
+      final values = item.values.toList();
+      List<double> doubleValues;
+
+      if (isFeature) {
+        doubleValues = values.sublist(0, inputSize).map((e) {
+          if (e is num) return e.toDouble();
+          if (e is String) return double.tryParse(e) ?? 0.0;
+          return 0.0;
+        }).toList();
+      } else {
+        doubleValues = [
+          values.last is num ? (values.last as num).toDouble() : 0.0
+        ];
+      }
+
+      final shape = isFeature ? [1, doubleValues.length] : [1, 1];
+
+      // print('Creating Tensor:');
+      print('  Shape: $shape');
+      // print('  Data length: ${doubleValues.length}');
+      // print('  Data: $doubleValues');
+
+      try {
+        return Tensor(shape, Float32List.fromList(doubleValues));
+      } catch (e) {
+        print('Error creating Tensor: $e');
+        rethrow;
+      }
+    }).toList();
+  }
