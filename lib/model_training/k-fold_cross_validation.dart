@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:dart_ml/core/tensors.dart';
+import 'package:ml_dart/ml_dart.dart';
 
 List<Map<String, Map<String, List<Tensor>>>> kFoldCrossValidation(List<Tensor> data, List<Tensor> labels, int k) {
   assert(data.length == labels.length, "Data and labels must have the same length");

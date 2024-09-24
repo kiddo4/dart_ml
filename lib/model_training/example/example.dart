@@ -1,6 +1,5 @@
 import 'dart:io';
-
-import 'package:dart_ml/model_training/ml_models.dart';
+import 'package:ml_dart/ml_dart.dart';
 import 'package:image/image.dart' as img;
 
 

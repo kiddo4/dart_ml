@@ -3,8 +3,7 @@ import 'dart:math' as math;
 import 'package:image/image.dart' as img;
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:dart_ml/core/tensors.dart';
-
+import 'package:ml_dart/ml_dart.dart';
 // Abstract base class for machine learning models
 abstract class Model {
   Tensor forward(Tensor input);

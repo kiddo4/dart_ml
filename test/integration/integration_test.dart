@@ -2,9 +2,7 @@ import 'dart:io';
 
 
 import 'package:test/test.dart';
-import 'package:dart_ml/integration/serialization.dart';
-import 'package:dart_ml/integration/model_exporter.dart';
-import 'package:dart_ml/integration/model_importer.dart';
+import 'package:ml_dart/ml_dart.dart';
 
 void main() {
   group('Model Exporter, Model Importer, and Serialization Tests', () {

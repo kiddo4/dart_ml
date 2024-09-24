@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:dart_ml/core/tensors.dart';
-import 'package:dart_ml/model_training/ml_models.dart';
+import 'package:ml_dart/ml_dart.dart';
 
 import '../autograd.dart';
 

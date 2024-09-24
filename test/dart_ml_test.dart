@@ -1,4 +1,4 @@
-import 'package:dart_ml/dart_ml.dart';
+import 'package:ml_dart/ml_dart.dart';
 import 'package:test/test.dart';
 
 void main() {

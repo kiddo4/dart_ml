@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:dart_ml/visualization/visualizations.dart';
+import 'package:ml_dart/ml_dart.dart';
 import 'package:test/test.dart';
 import 'package:image/image.dart' as img;
 // import 'package:dart_ml/visualization/visualization.dart';

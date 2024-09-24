@@ -1,5 +1,4 @@
-import 'package:dart_ml/core/tensors.dart';
-import 'package:dart_ml/model_training/ml_models.dart';
+import 'package:ml_dart/ml_dart.dart';
 
 List<List<int>> confusionMatrix(List<Tensor> predictions, List<Tensor> labels, int numClasses) {
   List<List<int>> matrix = List.generate(numClasses, (_) => List<int>.filled(numClasses, 0));

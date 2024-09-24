@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
-import 'package:dart_ml/core/matrices.dart';
+import 'package:ml_dart/ml_dart.dart';
 
 void main() {
   group('Matrix', () {
