@@ -13,7 +13,7 @@ void main() {
 
   var d = add(a, b);
   var e = multiply(d, c);
-
+  testCrossEntropyLos();
   e.backward();
 
   print('Gradient of a:');
@@ -54,4 +54,12 @@ void main() {
       print('Epoch $epoch, Loss: $loss');
     }
   }
+}
+
+void testCrossEntropyLos() {
+  final outputs = Tensor([2], Float32List.fromList([0.9, 0.1])); // Example prediction
+  final targets = Tensor([2], Float32List.fromList([1.0, 0.0])); // Example ground truth
+
+  final loss = crossEntropyLoss(outputs, targets);
+  print('Cross-Entropy Loss: ${loss.data[0]}'); // Should be a positive value
 }
