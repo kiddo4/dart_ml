@@ -1,9 +1,5 @@
 import 'package:test/test.dart';
-import 'package:dart_ml/data_processing/data_loader.dart';
-import 'package:dart_ml/data_processing/data_cleaner.dart';
-import 'package:dart_ml/data_processing/feature_engineer.dart';
-import 'package:dart_ml/data_processing/data_splitter.dart';
-
+import 'package:ml_dart/ml_dart.dart';
 void main() {
   final data = [
     {'feature1': 1, 'feature2': 2},

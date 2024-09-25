@@ -1,4 +1,4 @@
-import 'package:dart_ml/core/matrices.dart';
+import 'package:ml_dart/ml_dart.dart';
 import 'dart:math' as math;
 
 abstract class Optimizer {

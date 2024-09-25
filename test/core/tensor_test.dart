@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
-import 'package:dart_ml/core/tensors.dart';
+import 'package:ml_dart/ml_dart.dart';
 
 void main() {
   group('Tensor', () {

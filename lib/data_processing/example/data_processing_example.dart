@@ -1,8 +1,4 @@
-import 'package:dart_ml/data_processing/data_loader.dart';
-import 'package:dart_ml/data_processing/data_cleaner.dart';
-import 'package:dart_ml/data_processing/feature_engineer.dart';
-import 'package:dart_ml/data_processing/data_splitter.dart';
-
+import 'package:ml_dart/ml_dart.dart';
 void main() async {
   final dataLoader = DataLoader();
   final dataCleaner = DataCleaner();

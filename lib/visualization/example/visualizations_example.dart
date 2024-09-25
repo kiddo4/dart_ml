@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:dart_ml/visualization/visualizations.dart';
+import 'package:ml_dart/ml_dart.dart';
 import 'package:image/image.dart' as img;
 import 'dart:io';
 

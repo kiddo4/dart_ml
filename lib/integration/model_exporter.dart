@@ -1,4 +1,4 @@
-import 'package:dart_ml/integration/serialization.dart';
+import 'package:ml_dart/ml_dart.dart';
 
 class ModelExporter {
   // Export model to a file
