@@ -13,6 +13,7 @@ abstract class Model {
 }
 
 // Linear layer implementation
+// Linear layer implementation
 class LinearLayer implements Model {
   Tensor weights;
   Tensor bias;
@@ -25,37 +26,52 @@ class LinearLayer implements Model {
         bias = Tensor.zeros([1, outputSize]);
 
   @override
-Tensor forward(Tensor input) {
-  // Check if the input is 1D and reshape it to 2D
-  if (input.shape.length == 1) {
-    // Reshape from [inputSize] to [1, inputSize]
-    input = input.reshape([1, input.shape[0]]);
-  }
+  Tensor forward(Tensor input) {
+    gradWeights = null;
+    gradBias = null;
 
-  this.input = input;
-  Tensor output = input.matmul(weights);
-  Tensor broadcastedBias = bias.broadcastTo(output.shape);
-  return output + broadcastedBias;
-}
+    if (input.shape.length == 1) {
+      input = input.reshape([1, input.shape[0]]);
+    }
+
+    this.input = input;
+    Tensor output = input.matmul(weights);
+    Tensor broadcastedBias = bias.broadcastTo(output.shape);
+    return output + broadcastedBias;
+  }
 
   @override
   void backward(Tensor gradOutput) {
-    if (input == null) throw StateError('Input is null');
+    if (input == null) throw StateError('Input is null during backward');
+    
     gradWeights = input!.transpose().matmul(gradOutput);
     gradBias = gradOutput.sum(axis: 0);
+
+    if (gradWeights == null || gradBias == null) {
+      throw StateError('Gradients calculation failed during backward');
+    }
+
+    print('gradWeights: ${gradWeights!.data}');
+    print('gradBias: ${gradBias!.data}');
   }
 
   @override
   void updateParameters(double learningRate) {
-    if (gradWeights == null || gradBias == null) throw StateError('Gradients are null');
+    if (gradWeights == null || gradBias == null) {
+      throw StateError('Cannot update parameters: Gradients are null');
+    }
 
     final weightUpdate = gradWeights!.elementwiseOperation((x) => x * learningRate);
     weights = weights - weightUpdate;
 
     final biasUpdate = gradBias!.elementwiseOperation((x) => x * learningRate);
     bias = bias - biasUpdate;
+
+    print('Weight update: ${weightUpdate.data}');
+    print('Bias update: ${biasUpdate.data}');
   }
 }
+
 
 // ReLU activation
 class ReLU implements Model {
@@ -75,16 +91,27 @@ class ReLU implements Model {
   }
 }
 
-// Sigmoid activation
 class Sigmoid implements Model {
+  Tensor? input;
+
   @override
   Tensor forward(Tensor input) {
+    this.input = input;
     return input.elementwiseOperation((x) => 1 / (1 + exp(-x)));
   }
 
   @override
   void backward(Tensor gradOutput) {
-    // No learnable parameters to update
+    // if (input == null) {
+    //   throw Exception('Forward pass must be called before backward pass.');
+    // }
+
+    // final sigmoidOutput = forward(input!);
+    // final gradSigmoid = sigmoidOutput.elementwiseOperation((x) => x * (1 - x));
+    // final gradInput = gradOutput * gradSigmoid;
+    
+    // Set the gradients for the previous layer
+    // Note: Ensure that gradInput is correctly used in the layer where it's required
   }
 
   @override
@@ -92,6 +119,7 @@ class Sigmoid implements Model {
     // No learnable parameters to update
   }
 }
+
 
 // Tanh activation
 class Tanh implements Model {
@@ -457,6 +485,25 @@ class MNISTLoader {
 }
 
 // Improved CNN model for MNIST
+class Flatten implements Model {
+  @override
+  Tensor forward(Tensor input) {
+    final batchSize = input.shape[0];
+    final flattenedSize = input.shape.sublist(1).reduce((a, b) => a * b);
+    return input.reshape([batchSize, flattenedSize]);
+  }
+
+  @override
+  void backward(Tensor gradOutput) {
+    // Implement if needed
+  }
+
+  @override
+  void updateParameters(double learningRate) {
+    // No parameters to update
+  }
+}
+
 class MNISTModel extends SequentialModel {
   MNISTModel()
       : super([
@@ -466,31 +513,38 @@ class MNISTModel extends SequentialModel {
           Conv2D(32, 64, 3, padding: 1),
           ReLU(),
           MaxPooling(2),
+          Flatten(),  // Add this layer
           LinearLayer(64 * 7 * 7, 128),
           ReLU(),
-          // Dropout(0.5),
           LinearLayer(128, 10),
           Softmax()
         ]);
 }
-
 // Improved training function with validation
 void trainMNISTModel(MNISTModel model, List<Tensor> trainImages, List<Tensor> trainLabels,
                      List<Tensor> valImages, List<Tensor> valLabels, int epochs, double learningRate) {
   for (int epoch = 0; epoch < epochs; epoch++) {
-    
     double trainLoss = 0.0;
     int correct = 0;
     
     for (int i = 0; i < trainImages.length; i++) {
-      Tensor output = model.forward(trainImages[i]);
-      Tensor loss = crossEntropyLoss(output, trainLabels[i]);
-      trainLoss += loss.sum().data[0];
-      
-      if (argmax(output) == argmax(trainLabels[i])) correct++;
-      
-      model.backward(loss);
-      model.updateParameters(learningRate);
+      try {
+        Tensor output = model.forward(trainImages[i]);
+        Tensor loss = crossEntropyLoss(output, trainLabels[i]);
+        trainLoss += loss.sum().data[0];
+        
+        if (argmax(output) == argmax(trainLabels[i])) correct++;
+        
+        model.backward(loss);
+        model.updateParameters(learningRate);
+      } catch (e, stackTrace) {
+        print('Error processing image $i:');
+        print('Input shape: ${trainImages[i].shape}');
+        print('Label shape: ${trainLabels[i].shape}');
+        print(e);
+        print(stackTrace);
+        // Consider breaking the loop or handling the error as appropriate
+      }
     }
     
     double accuracy = correct / trainImages.length;

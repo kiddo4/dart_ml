@@ -236,21 +236,33 @@ class Tensor {
 }
 
 Tensor crossEntropyLoss(Tensor outputs, Tensor targets) {
+  // Ensure outputs and targets have the same shape
+  if (!outputs._shapeMatch(targets)) {
+    throw ArgumentError('Outputs and targets must have the same shape');
+  }
+
   // Ensure numerical stability by adding a small constant epsilon
   final epsilon = 1e-12;
 
-  // Compute log of outputs, adding epsilon to avoid log(0)
-  final logOutputs = outputs.elementwiseOperation((x) => math.log(x + epsilon));
+  // Clip outputs to prevent log(0)
+  final clippedOutputs =
+      outputs.elementwiseOperation((x) => x.clamp(epsilon, 1.0 - epsilon));
+
+  // Compute log of outputs
+  final logOutputs = clippedOutputs.log();
 
   // Compute element-wise product of targets and logOutputs
   final elementWiseProduct = targets * logOutputs;
 
-  // Compute the loss by summing over the classes (assuming axis=1) and taking the mean over the batch
-  final losses =
-      elementWiseProduct.sum(axis: 1).elementwiseOperation((x) => -x);
+  // Sum over the classes (assuming last dimension represents classes)
+  final summedLoss =
+      elementWiseProduct.sum(axis: elementWiseProduct.shape.length - 1);
 
-  // Return the mean loss over the batch
-  final meanLoss = losses.mean();
+  // Compute the negative of the summed loss
+  final negativeLoss = summedLoss.elementwiseOperation((x) => -x);
+
+  // Compute the mean loss over the batch
+  final meanLoss = negativeLoss.mean();
 
   // Return as a scalar tensor
   return Tensor.scalar(meanLoss.data[0]);
@@ -327,42 +339,45 @@ extension BroadcastTensor on Tensor {
     }
     return index;
   }
-
-  // Cross-entropy loss function
 }
 
+// Helper function to convert List<Map<String, dynamic>> to List<Tensor>
+List<Tensor> convertToTensorList(
+    List<Map<String, dynamic>> data, bool isFeature, int inputSize) {
+  return data.map((item) {
+    final values = item.values.toList();
+    List<double> doubleValues;
 
-  // Helper function to convert List<Map<String, dynamic>> to List<Tensor>
-  List<Tensor> convertToTensorList(
-      List<Map<String, dynamic>> data, bool isFeature, int inputSize) {
-    return data.map((item) {
-      final values = item.values.toList();
-      List<double> doubleValues;
+    if (isFeature) {
+      doubleValues = values.sublist(0, inputSize).map((e) {
+        if (e is num) return e.toDouble();
+        if (e is String) return double.tryParse(e) ?? 0.0;
+        return 0.0;
+      }).toList();
+    } else {
+      doubleValues = [
+        values.last is num ? (values.last as num).toDouble() : 0.0
+      ];
+    }
 
-      if (isFeature) {
-        doubleValues = values.sublist(0, inputSize).map((e) {
-          if (e is num) return e.toDouble();
-          if (e is String) return double.tryParse(e) ?? 0.0;
-          return 0.0;
-        }).toList();
-      } else {
-        doubleValues = [
-          values.last is num ? (values.last as num).toDouble() : 0.0
-        ];
-      }
+    final shape = isFeature ? [1, doubleValues.length] : [1, 1];
 
-      final shape = isFeature ? [1, doubleValues.length] : [1, 1];
+    // print('Creating Tensor:');
+    print('  Shape: $shape');
+    // print('  Data length: ${doubleValues.length}');
+    // print('  Data: $doubleValues');
 
-      // print('Creating Tensor:');
-      print('  Shape: $shape');
-      // print('  Data length: ${doubleValues.length}');
-      // print('  Data: $doubleValues');
+    try {
+      return Tensor(shape, Float32List.fromList(doubleValues));
+    } catch (e) {
+      print('Error creating Tensor: $e');
+      rethrow;
+    }
+  }).toList();
+}
 
-      try {
-        return Tensor(shape, Float32List.fromList(doubleValues));
-      } catch (e) {
-        print('Error creating Tensor: $e');
-        rethrow;
-      }
-    }).toList();
+extension ClampTensor on Tensor {
+  Tensor clamp(double min, double max) {
+    return elementwiseOperation((x) => x.clamp(min, max));
   }
+}

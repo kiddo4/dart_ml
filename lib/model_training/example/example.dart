@@ -20,7 +20,7 @@ void main() async {
   // saveModel(model, 'mnist_model.json');
   
   // Example usage: recognize a digit from a file
-  final image = img.decodeImage(File('sample_digit.png').readAsBytesSync())!;
+  final image = img.decodeImage(File('assets/sample_digit.png').readAsBytesSync())!;
   final prediction = recognizeDigit(model, image);
   print('Predicted digit: $prediction');
 }

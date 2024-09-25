@@ -5,11 +5,8 @@ import 'package:dart_ml/model_training/ml_models.dart';
 class LogisticRegression implements Model {
   final LinearLayer linearLayer;
   final Sigmoid sigmoid;
-  double regularizationStrength;
-  double currentLearningRate;
 
-  LogisticRegression(int inputSize, int outputSize,
-      {this.regularizationStrength = 0.01, this.currentLearningRate = 0.01})
+  LogisticRegression(int inputSize, int outputSize)
       : linearLayer = LinearLayer(inputSize, outputSize),
         sigmoid = Sigmoid();
 
@@ -22,39 +19,23 @@ class LogisticRegression implements Model {
   @override
   void backward(Tensor gradOutput) {
     sigmoid.backward(gradOutput);
-    assert(gradOutput != null, "GradOutput is null after sigmoid backward");
     linearLayer.backward(gradOutput);
-
-    // Apply L2 regularization
-    for (int i = 0; i < linearLayer.weights.data.length; i++) {
-      linearLayer.weights.data[i] -= 2 *
-          regularizationStrength *
-          linearLayer.weights.data[i] *
-          currentLearningRate;
-    }
   }
 
   @override
   void updateParameters(double learningRate) {
-    currentLearningRate = learningRate;
     linearLayer.updateParameters(learningRate);
   }
 
   void train(List<Tensor> trainData, List<Tensor> trainLabels,
       List<Tensor> valData, List<Tensor> valLabels,
-      {required int epochs,
-      required double initialLearningRate,
-      int patience = 10}) {
+      {required int epochs, required double learningRate, int patience = 10}) {
     double bestValLoss = double.infinity;
     int patienceCounter = 0;
-    List<double> learningRates =
-        _generateLearningRates(initialLearningRate, epochs);
 
     for (int epoch = 0; epoch < epochs; epoch++) {
       double totalLoss = 0.0;
       int correct = 0;
-
-      updateParameters(learningRates[epoch]);
 
       for (int i = 0; i < trainData.length; i++) {
         Tensor output = forward(trainData[i]);
@@ -65,11 +46,11 @@ class LogisticRegression implements Model {
 
         Tensor gradOutput = output - trainLabels[i];
         backward(gradOutput);
+        updateParameters(learningRate);
       }
 
       double accuracy = correct / trainData.length;
-      print(
-          "Epoch $epoch: Loss: ${totalLoss / trainData.length}, Accuracy: $accuracy");
+      print("Epoch $epoch: Loss: ${totalLoss / trainData.length}, Accuracy: $accuracy");
 
       // Validation
       double valLoss = 0.0;
@@ -84,8 +65,7 @@ class LogisticRegression implements Model {
       }
 
       double valAccuracy = valCorrect / valData.length;
-      print(
-          "Validation Loss: ${valLoss / valData.length}, Accuracy: $valAccuracy");
+      print("Validation Loss: ${valLoss / valData.length}, Accuracy: $valAccuracy");
 
       // Early stopping
       if (valLoss < bestValLoss) {
@@ -99,11 +79,6 @@ class LogisticRegression implements Model {
         }
       }
     }
-  }
-
-  List<double> _generateLearningRates(double initialLearningRate, int epochs) {
-    return List.generate(
-        epochs, (index) => initialLearningRate / (1 + 0.1 * index));
   }
 
   double evaluate(List<Tensor> testImages, List<Tensor> testLabels) {
