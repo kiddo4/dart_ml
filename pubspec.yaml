@@ -1,7 +1,7 @@
 name: ml_dart
 description: A comprehensive ML ecosystem for Dart.
 version: 1.0.0
-repository: https://github.com/my_org/my_repo
+repository: https://github.com/kiddo4/dart_ml.git
 
 environment:
   sdk: ^3.4.3

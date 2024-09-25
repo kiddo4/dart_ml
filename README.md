@@ -28,7 +28,7 @@ To use the Dart ML library, add the following to your `pubspec.yaml` file:
 ```yaml
 dependencies:
   ml_dart:
-    git: https://github.com/your-repo/ml_dart.git
+    git: https://github.com/kiddo4/dart_ml.git
 ```
 
 Then run:
@@ -151,7 +151,7 @@ void main() {
 
 ## Contributing
 
-Feel free to contribute to this project! Please submit issues and pull requests through our [GitHub repository](https://github.com/your-repo/ml_dart).
+Feel free to contribute to this project! Please submit issues and pull requests through our [GitHub repository](https://github.com/kiddo4/dart_ml.git).
 
 ## License
 
