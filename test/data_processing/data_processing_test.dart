@@ -6,7 +6,7 @@ void main() {
     {'feature1': 3, 'feature2': 4},
     {'feature1': 5, 'feature2': 6},
     {'feature1': 7, 'feature2': 8},
-    {'feature1': 9, 'feature2': 10},
+    {'feature1': 7, 'feature2': 10},
   ];
   group('Data Processing Tests', () {
     test('CSV loading', () async {
